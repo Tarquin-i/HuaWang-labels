@@ -18,7 +18,7 @@ import { type Product } from "@/lib/mock-data";
 interface ProductTableProps {
   products: Product[];
   onReimport: () => void;
-  onGenerate: () => void;
+  onGenerate: (selectedProducts: Product[]) => void;
 }
 
 export function ProductTable({
@@ -126,23 +126,15 @@ export function ProductTable({
                   </TableCell>
                   <TableCell className="font-medium">
                     {product.productName}
-                    <span className="text-muted-foreground ml-2">
-                      (产品名称)
-                    </span>
                   </TableCell>
                   <TableCell>
                     {product.orderNumber}
-                    <span className="text-muted-foreground ml-2">
-                      (订单号)
-                    </span>
                   </TableCell>
                   <TableCell>
                     {product.itemNumber}
-                    <span className="text-muted-foreground ml-2">(货号)</span>
                   </TableCell>
                   <TableCell>
                     {product.batch}
-                    <span className="text-muted-foreground ml-2">(批次)</span>
                   </TableCell>
                   <TableCell className="text-right">{product.quantity}</TableCell>
                 </TableRow>
@@ -154,13 +146,22 @@ export function ProductTable({
       </div>
 
       {/* 生成标签按钮 */}
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          已选择 {selectedProducts.length} 个产品
+        </p>
         <Button
-          onClick={onGenerate}
+          onClick={() => {
+            const selected = products.filter((p) =>
+              selectedProducts.includes(p.id)
+            );
+            onGenerate(selected);
+          }}
           size="lg"
           className="bg-black hover:bg-black/90 text-white"
+          disabled={selectedProducts.length === 0}
         >
-          生成标签
+          生成标签 ({selectedProducts.length})
         </Button>
       </div>
     </div>

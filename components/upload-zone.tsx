@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { FileIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { parseExcelFile } from "@/lib/excel-parser";
+import { useProducts } from "@/lib/product-context";
 
 export function UploadZone() {
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { setProducts } = useProducts();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -37,7 +41,7 @@ export function UploadZone() {
     }
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     const validExtensions = [".xlsx", ".xls"];
     const fileExtension = file.name.substring(file.name.lastIndexOf("."));
 
@@ -48,17 +52,40 @@ export function UploadZone() {
       return;
     }
 
-    // 模拟上传过程
-    toast.loading("正在上传文件...");
+    // Start parsing
+    setIsUploading(true);
+    const loadingToast = toast.loading("正在解析Excel文件...");
 
-    setTimeout(() => {
-      toast.dismiss();
-      toast.success("文件上传成功");
-      // 跳转到产品列表页
-      setTimeout(() => {
-        router.push("/products");
-      }, 500);
-    }, 1000);
+    try {
+      const result = await parseExcelFile(file);
+
+      toast.dismiss(loadingToast);
+
+      if (result.success && result.data) {
+        // Store parsed products in context
+        setProducts(result.data);
+
+        toast.success("文件解析成功", {
+          description: `成功解析 ${result.data.length} 条产品数据`,
+        });
+
+        // Navigate to products page
+        setTimeout(() => {
+          router.push("/products");
+        }, 500);
+      } else {
+        toast.error("文件解析失败", {
+          description: result.error || "未知错误",
+        });
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("文件处理失败", {
+        description: error instanceof Error ? error.message : "未知错误",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -86,9 +113,10 @@ export function UploadZone() {
           onClick={() => fileInputRef.current?.click()}
           size="lg"
           className="bg-black hover:bg-black/90 text-white px-12 py-6 text-base"
+          disabled={isUploading}
         >
           <FileIcon className="mr-2 h-5 w-5" />
-          选择文件
+          {isUploading ? "解析中..." : "选择文件"}
         </Button>
 
         <input
