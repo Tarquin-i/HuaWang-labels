@@ -18,12 +18,7 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <span className="text-sm text-muted-foreground">产品选择页</span>
-          </div>
-          <h1 className="text-3xl font-bold">标签生成</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-center mb-8">标签生成</h1>
 
         <ProductTable
           products={mockProducts}

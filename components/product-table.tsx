@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SearchIcon } from "lucide-react";
 import { type Product } from "@/lib/mock-data";
 
@@ -26,6 +27,7 @@ export function ProductTable({
   onGenerate,
 }: ProductTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
   const filteredProducts = products.filter((product) => {
     const query = searchQuery.toLowerCase();
@@ -36,6 +38,29 @@ export function ProductTable({
       product.batch.toLowerCase().includes(query)
     );
   });
+
+  // 全选/取消全选
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(filteredProducts.map((p) => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  // 单选/取消单选
+  const handleSelectProduct = (productId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts([...selectedProducts, productId]);
+    } else {
+      setSelectedProducts(selectedProducts.filter((id) => id !== productId));
+    }
+  };
+
+  // 判断是否全选
+  const isAllSelected =
+    filteredProducts.length > 0 &&
+    selectedProducts.length === filteredProducts.length;
 
   return (
     <div className="space-y-6">
@@ -63,27 +88,42 @@ export function ProductTable({
       </div>
 
       {/* 产品表格 */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>产品名称</TableHead>
-              <TableHead>订单号</TableHead>
-              <TableHead>货号</TableHead>
-              <TableHead>批次</TableHead>
-              <TableHead className="text-right">数量</TableHead>
-            </TableRow>
-          </TableHeader>
+      <div className="border rounded-lg overflow-hidden">
+        <div className="max-h-[500px] overflow-y-auto">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10 border-b">
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>产品名称</TableHead>
+                <TableHead>订单号</TableHead>
+                <TableHead>货号</TableHead>
+                <TableHead>批次</TableHead>
+                <TableHead className="text-right">数量</TableHead>
+              </TableRow>
+            </TableHeader>
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   没有找到匹配的产品
                 </TableCell>
               </TableRow>
             ) : (
               filteredProducts.map((product) => (
                 <TableRow key={product.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedProducts.includes(product.id)}
+                      onCheckedChange={(checked) =>
+                        handleSelectProduct(product.id, checked as boolean)
+                      }
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
                     {product.productName}
                     <span className="text-muted-foreground ml-2">
@@ -110,6 +150,7 @@ export function ProductTable({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* 生成标签按钮 */}

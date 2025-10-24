@@ -62,43 +62,42 @@ export function UploadZone() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`
-          border-2 border-dashed rounded-lg p-16
-          transition-colors duration-200
-          ${isDragging ? "border-primary bg-primary/5" : "border-border"}
-        `}
-      >
-        <div className="flex flex-col items-center gap-6">
-          <UploadIcon className="w-16 h-16 text-muted-foreground" />
-
-          <div className="text-center">
-            <h3 className="text-xl font-medium mb-2">拖拽文件到此处</h3>
-            <p className="text-sm text-muted-foreground mb-1">选择 Excel 文件</p>
-            <p className="text-sm text-muted-foreground">支持.xlsx 和 .xls 格式</p>
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`
+        bg-card border rounded-xl p-20
+        transition-all duration-200
+        shadow-sm
+        ${isDragging ? "border-primary border-2 bg-primary/5 scale-[1.02]" : "border-border"}
+      `}
+    >
+      <div className="flex flex-col items-center gap-8">
+        <div className="text-center space-y-4">
+          <h3 className="text-2xl font-semibold">拖拽文件到此处</h3>
+          <div className="space-y-1">
+            <p className="text-base text-muted-foreground">选择 Excel 文件</p>
+            <p className="text-base text-muted-foreground">支持.xlsx 和 .xls 格式</p>
           </div>
-
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            size="lg"
-            className="bg-black hover:bg-black/90 text-white"
-          >
-            <FileIcon className="mr-2 h-4 w-4" />
-            选择文件
-          </Button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
         </div>
+
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          size="lg"
+          className="bg-black hover:bg-black/90 text-white px-12 py-6 text-base"
+        >
+          <FileIcon className="mr-2 h-5 w-5" />
+          选择文件
+        </Button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
       </div>
     </div>
   );
