@@ -13,8 +13,6 @@ interface GenerationSettingsProps {
 type GenerationStatus = "idle" | "success" | "error";
 
 export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
-  const spareQuantityId = useId();
-  const fontSizeId = useId();
   const chineseLabelId = useId();
   const englishLabelId = useId();
   const silverLabelId = useId();
@@ -38,9 +36,9 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8">
+      <div className="flex flex-col lg:flex-row gap-8 lg:items-stretch">
         {/* 左侧设置表单 */}
-        <div className="bg-card border rounded-lg p-8 space-y-6">
+        <div className="bg-card border rounded-lg p-8 space-y-6 flex flex-col w-full lg:flex-45">
           <div>
             <h3 className="text-lg font-semibold mb-4">生成标签设置</h3>
             <p className="text-sm text-muted-foreground mb-6">

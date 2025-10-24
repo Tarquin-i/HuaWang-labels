@@ -26,13 +26,13 @@ export function LabelPreview({
   ).length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col w-full lg:flex-55">
       {/* PDF预览容器 */}
-      <div className="bg-card border rounded-lg p-6">
+      <div className="bg-card border rounded-lg p-6 flex-1 flex flex-col">
         <h3 className="text-lg font-semibold mb-4">标签预览</h3>
 
         {/* PDF预览占位区 */}
-        <div className="border-2 border-dashed border-border rounded-lg p-8 min-h-[500px] flex items-center justify-center bg-muted/30">
+        <div className="border-2 border-dashed border-border rounded-lg p-8 flex-1 flex items-center justify-center bg-muted/30">
           <div className="text-center space-y-4">
             <FileTextIcon className="w-16 h-16 mx-auto text-muted-foreground" />
             <div>
