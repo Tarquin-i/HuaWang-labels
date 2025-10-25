@@ -10,12 +10,14 @@ export interface ParseResult {
 /**
  * Parse Excel file and extract product data
  *
- * Field mapping flow: Excel Column → Internal Field → PDF Label
+ * Required columns (必需列 - 缺少任何一列将导致验证失败):
  * - 产品名称 (Excel) → productName → 品名 (PDF标签)
  * - 订单编号 (Excel) → orderNumber → 订单号 (PDF标签)
  * - 产品编号 (Excel) → itemNumber → 货号 (PDF标签)
  * - 数量 (Excel) → quantity → 数量 (PDF标签，拆分后每张对应数量或备品数量)
  * - 批次 (Excel) → batch → 备注 (PDF标签)
+ *
+ * All fields are required. Missing any will result in a validation error.
  */
 export async function parseExcelFile(file: File): Promise<ParseResult> {
   try {
@@ -52,10 +54,18 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
     // Find column indices
     const columnMap = findColumnIndices(headers);
 
-    if (!columnMap.productName || !columnMap.orderNumber || !columnMap.itemNumber) {
+    // Validate all required fields
+    const missingFields = [];
+    if (!columnMap.productName) missingFields.push("产品名称");
+    if (!columnMap.orderNumber) missingFields.push("订单编号");
+    if (!columnMap.itemNumber) missingFields.push("产品编号");
+    if (!columnMap.quantity) missingFields.push("数量");
+    if (!columnMap.batch) missingFields.push("批次");
+
+    if (missingFields.length > 0) {
       return {
         success: false,
-        error: "Excel文件缺少必要的列，需要包含：品名、订单号、货号",
+        error: `Excel文件缺少必要的列：${missingFields.join("、")}`,
       };
     }
 
@@ -106,10 +116,25 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
     };
 
   } catch (error) {
-    console.error("解析Excel文件时出错:", error);
+    // Don't log the full error stack to console, just return a user-friendly message
+    let errorMessage = "文件解析失败";
+
+    if (error instanceof Error) {
+      // Detect specific error types and provide friendly messages
+      if (error.message.includes("not a spreadsheet") ||
+          error.message.includes("PNG") ||
+          error.message.includes("image")) {
+        errorMessage = "上传的文件不是有效的Excel文件，请检查文件格式";
+      } else if (error.message.includes("Unexpected")) {
+        errorMessage = "Excel文件格式不正确或已损坏";
+      } else {
+        errorMessage = "文件解析失败，请确保文件格式正确";
+      }
+    }
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "未知错误",
+      error: errorMessage,
     };
   }
 }

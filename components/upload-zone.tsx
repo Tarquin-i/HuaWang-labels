@@ -45,9 +45,24 @@ export function UploadZone() {
     const validExtensions = [".xlsx", ".xls"];
     const fileExtension = file.name.substring(file.name.lastIndexOf("."));
 
+    // Validate file extension
     if (!validExtensions.includes(fileExtension.toLowerCase())) {
       toast.error("文件类型不符合上传类型,请重新上传", {
         description: "仅支持 .xlsx 和 .xls 格式",
+      });
+      return;
+    }
+
+    // Validate file MIME type
+    const validMimeTypes = [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+      "application/vnd.ms-excel", // .xls
+    ];
+
+    if (!validMimeTypes.includes(file.type) && file.type !== "") {
+      toast.error("文件格式错误", {
+        description: `检测到的文件类型为：${file.type || "未知"}。请确保上传的是真实的Excel文件，而不是重命名的其他格式文件。`,
+        duration: 5000,
       });
       return;
     }
@@ -80,8 +95,11 @@ export function UploadZone() {
       }
     } catch (error) {
       toast.dismiss(loadingToast);
+
+      // Just show a simple error message, specific details are already in result.error
       toast.error("文件处理失败", {
-        description: error instanceof Error ? error.message : "未知错误",
+        description: error instanceof Error ? error.message : "请检查文件格式是否正确",
+        duration: 5000,
       });
     } finally {
       setIsUploading(false);

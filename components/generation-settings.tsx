@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useId, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LabelPreview } from "@/components/label-preview";
+import { useProducts } from "@/lib/product-context";
 
 interface GenerationSettingsProps {
   onCancel: () => void;
@@ -17,8 +18,10 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
   const englishLabelId = useId();
   const silverLabelId = useId();
 
+  const { selectedProducts } = useProducts();
+
   const [spareQuantity, setSpareQuantity] = useState("200");
-  const [fontSize, setFontSize] = useState("10");
+  const [fontSize, setFontSize] = useState("20");
   const [chineseLabel, setChineseLabel] = useState(true);
   const [englishLabel, setEnglishLabel] = useState(true);
   const [silverLabel, setSilverLabel] = useState(true);
@@ -27,6 +30,31 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
   const selectedStyles = [chineseLabel, englishLabel, silverLabel].filter(
     Boolean
   ).length;
+
+  // Calculate label statistics
+  const labelStats = useMemo(() => {
+    const productCount = selectedProducts.length;
+
+    // Calculate regular labels (considering 5000 split rule)
+    let regularLabels = 0;
+    selectedProducts.forEach((product) => {
+      const quantity = product.quantity;
+      // Split into chunks of 5000
+      const chunks = Math.ceil(quantity / 5000);
+      // Each chunk generates labels for each enabled style
+      regularLabels += chunks * selectedStyles;
+    });
+
+    // Calculate spare labels (one per product per style)
+    const spareLabels = productCount * selectedStyles;
+
+    return {
+      productCount,
+      regularLabels,
+      spareLabels,
+      totalLabels: regularLabels + spareLabels,
+    };
+  }, [selectedProducts, selectedStyles]);
 
   const handleConfirm = () => {
     // 模拟生成过程
@@ -132,7 +160,7 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">选择产品:</span>
-                <span className="ml-2 font-medium">4</span>
+                <span className="ml-2 font-medium">{labelStats.productCount}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">启用款式:</span>
@@ -140,11 +168,15 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
               </div>
               <div>
                 <span className="text-muted-foreground">常规标签:</span>
-                <span className="ml-2 font-medium">15 张</span>
+                <span className="ml-2 font-medium">{labelStats.regularLabels} 张</span>
               </div>
               <div>
                 <span className="text-muted-foreground">备品标签:</span>
-                <span className="ml-2 font-medium">12 张</span>
+                <span className="ml-2 font-medium">{labelStats.spareLabels} 张</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground">总计:</span>
+                <span className="ml-2 font-medium text-base">{labelStats.totalLabels} 张</span>
               </div>
             </div>
           </div>
@@ -173,6 +205,7 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
           silverLabel={silverLabel}
           status={status}
           errorMessage="失败原因"
+          previewProduct={selectedProducts[0]}
         />
       </div>
     </div>
