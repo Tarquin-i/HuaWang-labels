@@ -3,10 +3,10 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FileIcon } from "lucide-react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { parseExcelFile } from "@/lib/excel-parser";
 import { useProducts } from "@/lib/product-context";
+import { showError, showSuccess, showLoading, hideToast } from "@/lib/toast-helper";
 
 export function UploadZone() {
   const [isDragging, setIsDragging] = useState(false);
@@ -47,9 +47,7 @@ export function UploadZone() {
 
     // Validate file extension
     if (!validExtensions.includes(fileExtension.toLowerCase())) {
-      toast.error("文件类型不符合上传类型,请重新上传", {
-        description: "仅支持 .xlsx 和 .xls 格式",
-      });
+      showError("文件类型不符合", "仅支持 .xlsx 和 .xls 格式");
       return;
     }
 
@@ -60,47 +58,41 @@ export function UploadZone() {
     ];
 
     if (!validMimeTypes.includes(file.type) && file.type !== "") {
-      toast.error("文件格式错误", {
-        description: `检测到的文件类型为：${file.type || "未知"}。请确保上传的是真实的Excel文件，而不是重命名的其他格式文件。`,
-        duration: 5000,
-      });
+      showError(
+        "文件格式错误",
+        `检测到的文件类型为：${file.type || "未知"}，请确保上传的是真实的Excel文件`
+      );
       return;
     }
 
     // Start parsing
     setIsUploading(true);
-    const loadingToast = toast.loading("正在解析Excel文件...");
+    const loadingToast = showLoading("正在解析Excel文件...");
 
     try {
       const result = await parseExcelFile(file);
 
-      toast.dismiss(loadingToast);
+      hideToast(loadingToast);
 
       if (result.success && result.data) {
         // Store parsed products in context
         setProducts(result.data);
 
-        toast.success("文件解析成功", {
-          description: `成功解析 ${result.data.length} 条产品数据`,
-        });
+        showSuccess("文件解析成功", `成功解析 ${result.data.length} 条产品数据`);
 
         // Navigate to products page
         setTimeout(() => {
           router.push("/products");
         }, 500);
       } else {
-        toast.error("文件解析失败", {
-          description: result.error || "未知错误",
-        });
+        showError("文件解析失败", result.error || "未知错误");
       }
     } catch (error) {
-      toast.dismiss(loadingToast);
-
-      // Just show a simple error message, specific details are already in result.error
-      toast.error("文件处理失败", {
-        description: error instanceof Error ? error.message : "请检查文件格式是否正确",
-        duration: 5000,
-      });
+      hideToast(loadingToast);
+      showError(
+        "文件处理失败",
+        error instanceof Error ? error.message : "请检查文件格式是否正确"
+      );
     } finally {
       setIsUploading(false);
     }
