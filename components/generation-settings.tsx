@@ -94,11 +94,18 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
             <Input
               type="number"
               value={fontSize}
-              onChange={(e) => setFontSize(e.target.value)}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10) || 0;
+                if (value <= 70) {
+                  setFontSize(e.target.value);
+                }
+              }}
+              max={70}
+              min={1}
               className="max-w-xs"
             />
             <p className="text-xs text-muted-foreground">
-              标签字体大小
+              标签字体大小（最大70）
             </p>
           </div>
 
