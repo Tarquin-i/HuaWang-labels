@@ -8,26 +8,26 @@ export interface ParseResult {
 }
 
 /**
- * Parse Excel file and extract product data
+ * 解析Excel文件并提取产品数据
  *
- * Required columns (必需列 - 缺少任何一列将导致验证失败):
+ * 必需列（缺少任何一列将导致验证失败）:
  * - 产品名称 (Excel) → productName → 品名 (PDF标签)
  * - 订单编号 (Excel) → orderNumber → 订单号 (PDF标签)
  * - 产品编号 (Excel) → itemNumber → 货号 (PDF标签)
  * - 数量 (Excel) → quantity → 数量 (PDF标签，拆分后每张对应数量或备品数量)
  * - 批次 (Excel) → batch → 备注 (PDF标签)
  *
- * All fields are required. Missing any will result in a validation error.
+ * 所有字段都是必需的，缺少任何字段都会导致验证错误。
  */
 export async function parseExcelFile(file: File): Promise<ParseResult> {
   try {
-    // Read file as ArrayBuffer
+    // 读取文件为 ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
 
-    // Parse workbook
+    // 解析工作簿
     const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
-    // Get first sheet
+    // 获取第一个工作表
     const firstSheetName = workbook.SheetNames[0];
     if (!firstSheetName) {
       return {
@@ -38,7 +38,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
 
     const worksheet = workbook.Sheets[firstSheetName];
 
-    // Convert to JSON
+    // 转换为 JSON
     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
 
     if (jsonData.length < 2) {
@@ -48,13 +48,13 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       };
     }
 
-    // Extract headers (first row)
+    // 提取表头（第一行）
     const headers = jsonData[0] as string[];
 
-    // Find column indices
+    // 查找列索引
     const columnMap = findColumnIndices(headers);
 
-    // Validate all required fields
+    // 验证所有必需字段
     const missingFields = [];
     if (!columnMap.productName) missingFields.push("产品名称");
     if (!columnMap.orderNumber) missingFields.push("订单编号");
@@ -69,13 +69,13 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       };
     }
 
-    // Parse data rows
+    // 解析数据行
     const products: Product[] = [];
 
     for (let i = 1; i < jsonData.length; i++) {
       const row = jsonData[i];
 
-      // Skip empty rows
+      // 跳过空行
       if (!row || row.length === 0 || !row[columnMap.productName]) {
         continue;
       }
@@ -90,7 +90,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
           quantity: parseQuantity(row[columnMap.quantity]),
         };
 
-        // Validate required fields
+        // 验证必需字段
         if (!product.productName || !product.orderNumber || !product.itemNumber) {
           console.warn(`跳过第 ${i + 1} 行：缺少必要字段`);
           continue;
@@ -116,11 +116,11 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
     };
 
   } catch (error) {
-    // Don't log the full error stack to console, just return a user-friendly message
+    // 不要记录完整的错误堆栈到控制台，只返回用户友好的消息
     let errorMessage = "文件解析失败";
 
     if (error instanceof Error) {
-      // Detect specific error types and provide friendly messages
+      // 检测特定错误类型并提供友好的消息
       if (error.message.includes("not a spreadsheet") ||
           error.message.includes("PNG") ||
           error.message.includes("image")) {
@@ -140,7 +140,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
 }
 
 /**
- * Find column indices by header names
+ * 根据表头名称查找列索引
  */
 function findColumnIndices(headers: string[]): {
   productName?: number;
@@ -154,7 +154,7 @@ function findColumnIndices(headers: string[]): {
   headers.forEach((header, index) => {
     const normalized = String(header || "").trim().toLowerCase();
 
-    // Product Name - 产品名称
+    // 产品名称
     if (
       normalized.includes("品名") ||
       normalized.includes("产品名称") ||
@@ -165,7 +165,7 @@ function findColumnIndices(headers: string[]): {
       map.productName = index;
     }
 
-    // Order Number - 订单编号
+    // 订单编号
     else if (
       normalized.includes("订单号") ||
       normalized.includes("订单编号") ||
@@ -177,7 +177,7 @@ function findColumnIndices(headers: string[]): {
       map.orderNumber = index;
     }
 
-    // Item Number - 产品编号 / 货号
+    // 产品编号 / 货号
     else if (
       normalized.includes("货号") ||
       normalized.includes("产品编号") ||
@@ -189,7 +189,7 @@ function findColumnIndices(headers: string[]): {
       map.itemNumber = index;
     }
 
-    // Quantity - 数量
+    // 数量
     else if (
       normalized.includes("数量") ||
       normalized.includes("quantity") ||
@@ -199,7 +199,7 @@ function findColumnIndices(headers: string[]): {
       map.quantity = index;
     }
 
-    // Batch / Remarks - 批次
+    // 批次 / 备注
     else if (
       normalized.includes("备注") ||
       normalized.includes("批次") ||
@@ -216,8 +216,8 @@ function findColumnIndices(headers: string[]): {
 }
 
 /**
- * Parse quantity from various formats
- * Examples: "3000", "3000张", "3,000", 3000
+ * 从各种格式中解析数量
+ * 示例: "3000", "3000张", "3,000", 3000
  */
 function parseQuantity(value: any): number {
   if (typeof value === "number") {
@@ -225,7 +225,7 @@ function parseQuantity(value: any): number {
   }
 
   if (typeof value === "string") {
-    // Remove common suffixes and formatting
+    // 移除常见后缀和格式符号
     const cleaned = value
       .replace(/[张个件片]/g, "")
       .replace(/,/g, "")

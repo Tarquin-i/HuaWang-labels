@@ -31,21 +31,21 @@ export function GenerationSettings({ onCancel }: GenerationSettingsProps) {
     Boolean
   ).length;
 
-  // Calculate label statistics
+  // 计算标签统计信息
   const labelStats = useMemo(() => {
     const productCount = selectedProducts.length;
 
-    // Calculate regular labels (considering 5000 split rule)
+    // 计算常规标签（考虑5000拆分规则）
     let regularLabels = 0;
     selectedProducts.forEach((product) => {
       const quantity = product.quantity;
-      // Split into chunks of 5000
+      // 拆分成5000的块
       const chunks = Math.ceil(quantity / 5000);
-      // Each chunk generates labels for each enabled style
+      // 每个块为每个启用的样式生成标签
       regularLabels += chunks * selectedStyles;
     });
 
-    // Calculate spare labels (one per product per style)
+    // 计算备品标签（每个产品每个样式一个）
     const spareLabels = productCount * selectedStyles;
 
     return {

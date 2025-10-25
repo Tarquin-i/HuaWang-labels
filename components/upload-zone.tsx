@@ -45,13 +45,13 @@ export function UploadZone() {
     const validExtensions = [".xlsx", ".xls"];
     const fileExtension = file.name.substring(file.name.lastIndexOf("."));
 
-    // Validate file extension
+    // 验证文件扩展名
     if (!validExtensions.includes(fileExtension.toLowerCase())) {
       showError("文件类型不符合", "仅支持 .xlsx 和 .xls 格式");
       return;
     }
 
-    // Validate file MIME type
+    // 验证文件 MIME 类型
     const validMimeTypes = [
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
       "application/vnd.ms-excel", // .xls
@@ -65,7 +65,7 @@ export function UploadZone() {
       return;
     }
 
-    // Start parsing
+    // 开始解析
     setIsUploading(true);
     const loadingToast = showLoading("正在解析Excel文件...");
 
@@ -75,12 +75,12 @@ export function UploadZone() {
       hideToast(loadingToast);
 
       if (result.success && result.data) {
-        // Store parsed products in context
+        // 将解析的产品存储到上下文
         setProducts(result.data);
 
         showSuccess("文件解析成功", `成功解析 ${result.data.length} 条产品数据`);
 
-        // Navigate to products page
+        // 导航到产品页面
         setTimeout(() => {
           router.push("/products");
         }, 500);

@@ -5,7 +5,7 @@ import { LabelCanvas, type LabelStyle, calculateOptimalFontSize } from "./label-
 import { Product } from "@/lib/mock-data";
 import { useProducts } from "@/lib/product-context";
 
-// Style suffix to append to product name (same as in label-canvas.tsx)
+// 追加到产品名称的样式后缀（与 label-canvas.tsx 中相同）
 const STYLE_SUFFIX: Record<LabelStyle, string> = {
   chinese: "-中文吊牌",
   english: "-英文吊牌",
@@ -23,7 +23,7 @@ interface LabelPreviewProps {
   previewProduct?: Product;
 }
 
-// Split product into chunks based on 5000 rule
+// 根据5000规则将产品拆分成多个块
 function splitProductQuantity(product: Product, spareQuantity: number): {
   regularChunks: number[];
   spareQuantity: number;
@@ -31,22 +31,22 @@ function splitProductQuantity(product: Product, spareQuantity: number): {
   const regularChunks: number[] = [];
   const quantity = product.quantity;
 
-  // Split regular labels
+  // 拆分常规标签
   if (quantity > 5000) {
     const chunks = Math.floor(quantity / 5000);
     const remainder = quantity % 5000;
 
-    // Full 5000 chunks
+    // 完整的5000块
     for (let i = 0; i < chunks; i++) {
       regularChunks.push(5000);
     }
 
-    // Remainder chunk
+    // 余数块
     if (remainder > 0) {
       regularChunks.push(remainder);
     }
   } else {
-    // Single label for quantities <= 5000
+    // 数量 <= 5000 的单个标签
     regularChunks.push(quantity);
   }
 
@@ -68,16 +68,16 @@ export function LabelPreview({
 }: LabelPreviewProps) {
   const { selectedProducts } = useProducts();
 
-  // Determine which styles are enabled
+  // 确定启用了哪些样式
   const enabledStyles: LabelStyle[] = [];
   if (chineseLabel) enabledStyles.push("chinese");
   if (englishLabel) enabledStyles.push("english");
   if (silverLabel) enabledStyles.push("silver");
 
-  // Use all selected products, not just the preview product
+  // 使用所有选中的产品，而不仅仅是预览产品
   const productsToDisplay = selectedProducts.length > 0 ? selectedProducts : (previewProduct ? [previewProduct] : []);
 
-  // Parse spare quantity - allow 0 or NaN (will show empty in label)
+  // 解析备品数量 - 允许 0 或 NaN（将在标签中显示为空）
   const spareQty = parseInt(spareQuantity, 10);
 
   return (
@@ -93,11 +93,11 @@ export function LabelPreview({
           {productsToDisplay.length > 0 ? (
             <div className="p-4 space-y-6">
               {productsToDisplay.map((product) => {
-                // Split product into chunks based on 5000 rule
+                // 根据5000规则拆分产品
                 const { regularChunks, spareQuantity: spareQtyForProduct } = splitProductQuantity(product, spareQty);
 
-                // Calculate optimal font size based on spare label (longest text)
-                // Canvas dimensions from LabelCanvas defaults
+                // 基于备品标签（最长文本）计算最优字体大小
+                // Canvas 尺寸来自 LabelCanvas 的默认值
                 const canvasWidth = 800;
                 const canvasHeight = 600;
                 const padding = 40;
@@ -107,7 +107,7 @@ export function LabelPreview({
                 const baseFontSize = parseInt(fontSize, 10) || 20;
                 const valueFontSize = baseFontSize + 4;
 
-                // Calculate font size for each enabled style, using spare label text (longest)
+                // 使用备品标签文本（最长）为每个启用的样式计算字体大小
                 let optimalFontSize = valueFontSize;
                 enabledStyles.forEach((styleType) => {
                   const spareLabelText = product.productName + STYLE_SUFFIX[styleType] + '-备品';
@@ -115,10 +115,10 @@ export function LabelPreview({
                     spareLabelText,
                     maxWidth,
                     valueFontSize,
-                    2, // maxLines
-                    14 // minFontSize
+                    2, // 最大行数
+                    14 // 最小字体大小
                   );
-                  // Use the smallest font size to ensure all labels fit
+                  // 使用最小的字体大小以确保所有标签都能适配
                   optimalFontSize = Math.min(optimalFontSize, fontSizeForStyle);
                 });
 
@@ -129,7 +129,7 @@ export function LabelPreview({
                       {product.productName} - 订单号: {product.orderNumber}
                     </div>
 
-                    {/* Regular labels: First iterate by quantity chunks, then by styles */}
+                    {/* 常规标签：首先按数量块迭代，然后按样式 */}
                     {regularChunks.map((chunkQuantity, chunkIndex) => (
                       <div key={`${product.id}-chunk-${chunkIndex}`} className="space-y-4">
                         <div className="text-xs text-muted-foreground pl-2">
@@ -152,7 +152,7 @@ export function LabelPreview({
                       </div>
                     ))}
 
-                    {/* Spare labels: Always render, quantity field will be empty if spareQty is 0 or NaN */}
+                    {/* 备品标签：始终渲染，如果 spareQty 为 0 或 NaN，数量字段将为空 */}
                     <div className="space-y-4 border-t pt-4">
                       <div className="text-xs text-muted-foreground pl-2">
                         备品标签 {!Number.isNaN(spareQtyForProduct) && spareQtyForProduct > 0 && `(${spareQtyForProduct}张)`}

@@ -13,10 +13,10 @@ interface LabelCanvasProps {
   height?: number;
   displayQuantity?: number; // Override quantity display
   isSpare?: boolean; // Whether this is a spare label
-  overrideFontSize?: number; // Override the calculated font size for product name
+  overrideFontSize?: number; // 覆盖产品名称的计算字体大小
 }
 
-// Field labels - all in Chinese
+// 字段标签 - 全部中文
 const FIELD_LABELS = {
   productName: "品  名",
   orderNumber: "订单号",
@@ -25,7 +25,7 @@ const FIELD_LABELS = {
   batch: "备  注",
 };
 
-// Style suffix to append to product name
+// 追加到产品名称的样式后缀
 const STYLE_SUFFIX: Record<LabelStyle, string> = {
   chinese: "-中文吊牌",
   english: "-英文吊牌",
@@ -51,10 +51,10 @@ export function LabelCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Clear canvas
+    // 清除画布
     ctx.clearRect(0, 0, width, height);
 
-    // Draw label
+    // 绘制标签
     drawLabel(ctx, product, style, fontSize, width, height, displayQuantity, isSpare, overrideFontSize);
   }, [product, style, fontSize, width, height, displayQuantity, isSpare, overrideFontSize]);
 
@@ -68,7 +68,7 @@ export function LabelCanvas({
   );
 }
 
-// Helper function to wrap text into multiple lines
+// 辅助函数：将文本包装成多行
 function wrapText(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -98,15 +98,15 @@ function wrapText(
 }
 
 /**
- * Calculate the optimal font size for a text to fit within maxLines
- * This function is used to ensure consistent font sizes across all labels
+ * 计算文本在最大行数内的最优字体大小
+ * 此函数用于确保所有标签的字体大小一致
  *
- * @param text - The text to measure
- * @param maxWidth - Maximum width for text wrapping
- * @param baseFontSize - Initial font size to start with
- * @param maxLines - Maximum number of lines allowed (default: 2)
- * @param minFontSize - Minimum font size allowed (default: 14)
- * @returns The optimal font size that fits the text within maxLines
+ * @param text - 要测量的文本
+ * @param maxWidth - 文本包装的最大宽度
+ * @param baseFontSize - 初始字体大小
+ * @param maxLines - 允许的最大行数（默认：2）
+ * @param minFontSize - 允许的最小字体大小（默认：14）
+ * @returns 能够在最大行数内容纳文本的最优字体大小
  */
 export function calculateOptimalFontSize(
   text: string,
@@ -115,7 +115,7 @@ export function calculateOptimalFontSize(
   maxLines: number = 2,
   minFontSize: number = 14
 ): number {
-  // Create a temporary canvas for measurement
+  // 创建一个临时画布用于测量
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) return baseFontSize;
@@ -127,19 +127,19 @@ export function calculateOptimalFontSize(
     const textWidth = ctx.measureText(text).width;
 
     if (textWidth <= maxWidth) {
-      // Text fits in one line
+      // 文本适合单行
       return currentFontSize;
     } else {
-      // Text needs wrapping
+      // 文本需要包装
       const lines = wrapText(ctx, text, maxWidth);
 
       if (lines.length <= maxLines) {
-        // Text fits within maxLines
+        // 文本适合最大行数
         return currentFontSize;
       }
     }
 
-    // Text doesn't fit, reduce font size and try again
+    // 文本不适合，减小字体大小并重试
     currentFontSize -= 1;
   }
 
@@ -157,38 +157,38 @@ function drawLabel(
   isSpare?: boolean,
   overrideFontSize?: number
 ) {
-  // Configuration
+  // 配置
   const padding = 40;
   const tableWidth = canvasWidth - padding * 2;
   const tableHeight = canvasHeight - padding * 2;
-  const rowHeight = tableHeight / 5; // 5 rows
-  const labelColumnWidth = tableWidth * 0.28; // Left column ~28%
-  const valueColumnWidth = tableWidth * 0.72; // Right column ~72%
+  const rowHeight = tableHeight / 5; // 5行
+  const labelColumnWidth = tableWidth * 0.28; // 左列 ~28%
+  const valueColumnWidth = tableWidth * 0.72; // 右列 ~72%
 
   const startX = padding;
   const startY = padding;
 
-  // Background
+  // 背景
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  // Table border
+  // 表格边框
   ctx.strokeStyle = "#000000";
   ctx.lineWidth = 2;
   ctx.strokeRect(startX, startY, tableWidth, tableHeight);
 
-  // Use displayQuantity if provided, otherwise use product.quantity
+  // 如果提供了 displayQuantity，使用它，否则使用 product.quantity
   const quantityToDisplay = displayQuantity !== undefined ? displayQuantity : product.quantity;
 
-  // Format quantity value: show empty string if 0 or NaN, otherwise show "XXX张"
+  // 格式化数量值：如果为 0 或 NaN 显示空字符串，否则显示 "XXX张"
   const quantityValue = !Number.isNaN(quantityToDisplay) && quantityToDisplay > 0
     ? `${quantityToDisplay}张`
     : '';
 
-  // Add spare suffix if this is a spare label
+  // 如果这是备品标签，添加备品后缀
   const spareSuffix = isSpare ? '-备品' : '';
 
-  // Define rows - append style suffix and spare suffix to product name
+  // 定义行 - 将样式后缀和备品后缀追加到产品名称
   const rows = [
     { label: FIELD_LABELS.productName, value: product.productName + STYLE_SUFFIX[style] + spareSuffix },
     { label: FIELD_LABELS.orderNumber, value: product.orderNumber },
@@ -197,11 +197,11 @@ function drawLabel(
     { label: FIELD_LABELS.batch, value: product.batch },
   ];
 
-  // Draw rows
+  // 绘制行
   rows.forEach((row, index) => {
     const y = startY + index * rowHeight;
 
-    // Draw horizontal line (except for first row)
+    // 绘制水平线（除了第一行）
     if (index > 0) {
       ctx.beginPath();
       ctx.moveTo(startX, y);
@@ -209,13 +209,13 @@ function drawLabel(
       ctx.stroke();
     }
 
-    // Draw vertical line (separator between label and value)
+    // 绘制垂直线（标签和值之间的分隔符）
     ctx.beginPath();
     ctx.moveTo(startX + labelColumnWidth, y);
     ctx.lineTo(startX + labelColumnWidth, y + rowHeight);
     ctx.stroke();
 
-    // Draw label (left column)
+    // 绘制标签（左列）
     ctx.fillStyle = "#000000";
     ctx.font = `bold ${baseFontSize}px "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif`;
     ctx.textAlign = "center";
@@ -225,18 +225,18 @@ function drawLabel(
     const labelY = y + rowHeight / 2;
     ctx.fillText(row.label, labelX, labelY);
 
-    // Draw value (right column)
+    // 绘制值（右列）
     let valueFontSize = baseFontSize + 4;
     const maxWidth = valueColumnWidth - 40;
 
     if (index === 0) {
-      // Product name - support multi-line wrapping (max 2 lines)
+      // 产品名称 - 支持多行包装（最多2行）
       const maxLines = 2;
       const minFontSize = 14;
       let currentFontSize: number;
       let lines: string[] = [];
 
-      // Use overrideFontSize if provided, otherwise calculate font size
+      // 如果提供了 overrideFontSize，使用它，否则计算字体大小
       if (overrideFontSize !== undefined) {
         currentFontSize = overrideFontSize;
         ctx.font = `bold ${currentFontSize}px "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif`;
@@ -248,7 +248,7 @@ function drawLabel(
           lines = wrapText(ctx, row.value, maxWidth);
         }
       } else {
-        // Calculate font size to fit within maxLines
+        // 计算适合最大行数的字体大小
         currentFontSize = valueFontSize;
 
         while (currentFontSize >= minFontSize) {
@@ -256,28 +256,28 @@ function drawLabel(
           const textWidth = ctx.measureText(row.value).width;
 
           if (textWidth <= maxWidth) {
-            // Text fits in one line
+            // 文本适合单行
             lines = [row.value];
             break;
           } else {
-            // Text needs wrapping
+            // 文本需要包装
             lines = wrapText(ctx, row.value, maxWidth);
 
             if (lines.length <= maxLines) {
-              // Text fits within maxLines
+              // 文本适合最大行数
               break;
             }
           }
 
-          // Text doesn't fit, reduce font size and try again
+          // 文本不适合，减小字体大小并重试
           currentFontSize -= 1;
         }
       }
 
-      // Use the final font size
+      // 使用最终字体大小
       ctx.font = `bold ${currentFontSize}px "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif`;
 
-      // Limit to maxLines
+      // 限制为最大行数
       const finalLines = lines.slice(0, maxLines);
       const lineHeight = currentFontSize * 1.2;
       const totalHeight = finalLines.length * lineHeight;
@@ -287,18 +287,18 @@ function drawLabel(
       const valueX = startX + labelColumnWidth + valueColumnWidth / 2;
 
       if (finalLines.length === 1) {
-        // Single line - center vertically
+        // 单行 - 垂直居中
         const valueY = y + rowHeight / 2;
         ctx.fillText(finalLines[0], valueX, valueY);
       } else {
-        // Multiple lines
+        // 多行
         finalLines.forEach((line, lineIndex) => {
           const lineY = startLineY + lineIndex * lineHeight;
           ctx.fillText(line, valueX, lineY);
         });
       }
     } else {
-      // Other fields - single line with bold font
+      // 其他字段 - 单行加粗字体
       ctx.font = `bold ${valueFontSize}px "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif`;
       ctx.textAlign = "center";
       const valueX = startX + labelColumnWidth + valueColumnWidth / 2;
@@ -307,9 +307,9 @@ function drawLabel(
     }
   });
 
-  // Special styling for silver label (optional - can add metallic effect)
+  // 烫银标签的特殊样式（可选 - 可以添加金属效果）
   if (style === "silver") {
-    // Add a subtle overlay or border effect
+    // 添加微妙的覆盖层或边框效果
     ctx.strokeStyle = "#c0c0c0";
     ctx.lineWidth = 3;
     ctx.strokeRect(startX - 1, startY - 1, tableWidth + 2, tableHeight + 2);

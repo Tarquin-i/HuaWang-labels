@@ -20,7 +20,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
   const setProducts = (newProducts: Product[]) => {
     setProductsState(newProducts);
-    // Clear selected products when new products are loaded
+    // 加载新产品时清除已选产品
     setSelectedProductsState([]);
   };
 
